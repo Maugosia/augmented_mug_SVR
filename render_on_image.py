@@ -17,7 +17,7 @@ def put_render_on_image(render, image):
     image_fg = cv2.bitwise_and(render_bgr, render_bgr, mask=mask_inv)
     dst = cv2.add(image_fg, image_bg)
 
-    cv2.imshow("render", render_bgr)
+    # cv2.imshow("render", render_bgr)
     #cv2.imshow("mask", mask)
     #cv2.imshow("mask inv", mask_inv)
     #cv2.imshow("image foregroung", image_fg)
