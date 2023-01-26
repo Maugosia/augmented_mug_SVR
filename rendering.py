@@ -21,7 +21,7 @@ def calculate_poses(objectron_obj_rot, objectron_obj_trans):
     object_pose[3, 3] = 1  # 1 for homogeneous matrix
     object_pose[0:3, 0:3] = objectron_obj_rot
     object_pose[0:3, 3] = objectron_obj_trans
-    object_pose = rotate_object(object_pose, -90/180*np.pi, 'x')
+    object_pose = rotate_object(object_pose, 0/180*np.pi, 'x')
 
     camera_pose = np.array([
         [1.0, 0.0, 0.0, 0.0],

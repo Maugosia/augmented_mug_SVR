@@ -1,56 +1,28 @@
-import cv2
+import trimesh
+import pyrender
+import matplotlib.pyplot as plt
+from rotations import *
 import mediapipe as mp
 import numpy as np
+from render_on_image import put_render_on_image
+import cv2
+from rendering import get_render
 
 mp_drawing = mp.solutions.drawing_utils
 mp_objectron = mp.solutions.objectron
+nescafe_path = 'examples/models/nescafe_mug.obj'
+fuze_path = 'examples/models/fuze.obj'
+coffe_path = 'examples/models/final/model.obj'
+final_path = 'examples/models/final/model.obj'
 
-
-def test_on_images():
-    # For static images:
-    IMAGE_FILES = ['mug.png']
-    with mp_objectron.Objectron(static_image_mode=False,
-                                max_num_objects=5,
-                                min_detection_confidence=0.5,
-                                min_tracking_confidence=0.2,
-                                model_name='Cup') as objectron:
-        for idx, file in enumerate(IMAGE_FILES):
-            image = cv2.imread(file)
-            # Convert the BGR image to RGB and process it with MediaPipe Objectron.
-            results = objectron.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
-            # Draw box landmarks.
-            if not results.detected_objects:
-                print(f'No box landmarks detected on {file}')
-                continue
-            print(f'Box landmarks of {file}:')
-
-            annotated_image = image.copy()
-            for detected_object in results.detected_objects:
-                print("landmarks2D: ", detected_object.landmarks_2d)
-                print("landmarks3D: ", detected_object.landmarks_3d)
-                print("rotation: ", detected_object.rotation)
-                print("translation: ", detected_object.translation)
-
-                mp_drawing.draw_landmarks(
-                    annotated_image, detected_object.landmarks_2d, mp_objectron.BOX_CONNECTIONS)
-                mp_drawing.draw_axis(annotated_image, detected_object.rotation,
-                                     detected_object.translation)
-                cv2.imshow('MediaPipe Objectron', annotated_image)
-                if cv2.waitKey(0) & 0xFF == 27:
-                    break
-                # cv2.imwrite('/tmp/annotated_image' + str(idx) + '.png', annotated_image)
-
-
-def test_on_camera():
-    # For webcam input:
+if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     with mp_objectron.Objectron(static_image_mode=False,
-                                max_num_objects=5,
+                                max_num_objects=1,
                                 min_detection_confidence=0.5,
                                 min_tracking_confidence=0.2,
                                 model_name='Cup') as objectron:
-        idx = 0
+        rz_curr = 0 # zmienna w czasie rotacja
         while cap.isOpened():
             success, image = cap.read()
             if not success:
@@ -66,27 +38,19 @@ def test_on_camera():
             # Draw the box landmarks on the image.
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
             if results.detected_objects:
                 for detected_object in results.detected_objects:
-                    print("landmarks2D: ", detected_object.landmarks_2d)
-                    print("landmarks3D: ", detected_object.landmarks_3d)
-                    print("rotation: ", detected_object.rotation)
-                    print("translation: ", detected_object.translation)
-                    cv2.imwrite('im' + str(idx) + '.png', image)
-                    idx += 1
+
                     mp_drawing.draw_landmarks(
                         image, detected_object.landmarks_2d, mp_objectron.BOX_CONNECTIONS)
                     mp_drawing.draw_axis(image, detected_object.rotation,
                                          detected_object.translation)
-            # Flip the image horizontally for a selfie-view display.
-            cv2.imshow('MediaPipe Objectron', cv2.flip(image, 1))
+                    render = get_render(final_path,
+                                        detected_object.rotation, detected_object.translation)
+                    image = put_render_on_image(render, image)
+
+            cv2.imshow('Cup rendering', cv2.flip(image, 1))
             if cv2.waitKey(5) & 0xFF == 27:
                 break
-
     cap.release()
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    # test_on_camera()
-    test_on_images()
