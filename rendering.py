@@ -78,10 +78,6 @@ def get_render(mesh_path, objectron_obj_rot, objectron_obj_trans):
 
     # display
     color_cv = cv2.cvtColor(color, cv2.COLOR_RGB2BGR)
-    print(type(color_cv))
-    cv2.imshow('Render', color_cv)
-    if cv2.waitKey(0) & 0xFF == 27:
-        pass
     return color_cv
 
 
@@ -91,5 +87,7 @@ if __name__ == "__main__":
                                   [0.04595965, 0.98727977, -0.86985153],
                                   [-0.01909464, 0.15770334, 0.47278368]])
     objectron_obj_trans = np.array([0.03409538, 0.01351676, -0.4729079])
-    get_render('examples/models/fuze.obj',
+    rendered_img = get_render('examples/models/fuze.obj',
                objectron_obj_rot, objectron_obj_trans)
+    cv2.imshow('Render', rendered_img)
+    cv2.waitKey(0)
