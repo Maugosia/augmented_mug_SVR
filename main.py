@@ -8,11 +8,12 @@ mp_objectron = mp.solutions.objectron
 
 def test_on_images():
     # For static images:
-    IMAGE_FILES = []
-    with mp_objectron.Objectron(static_image_mode=True,
+    IMAGE_FILES = ['mug.png']
+    with mp_objectron.Objectron(static_image_mode=False,
                                 max_num_objects=5,
-                                min_detection_confidence=0.7,
-                                model_name='Shoe') as objectron:
+                                min_detection_confidence=0.5,
+                                min_tracking_confidence=0.2,
+                                model_name='Cup') as objectron:
         for idx, file in enumerate(IMAGE_FILES):
             image = cv2.imread(file)
             # Convert the BGR image to RGB and process it with MediaPipe Objectron.
@@ -23,13 +24,22 @@ def test_on_images():
                 print(f'No box landmarks detected on {file}')
                 continue
             print(f'Box landmarks of {file}:')
+
             annotated_image = image.copy()
             for detected_object in results.detected_objects:
+                print("landmarks2D: ", detected_object.landmarks_2d)
+                print("landmarks3D: ", detected_object.landmarks_3d)
+                print("rotation: ", detected_object.rotation)
+                print("translation: ", detected_object.translation)
+
                 mp_drawing.draw_landmarks(
                     annotated_image, detected_object.landmarks_2d, mp_objectron.BOX_CONNECTIONS)
                 mp_drawing.draw_axis(annotated_image, detected_object.rotation,
                                      detected_object.translation)
-                cv2.imwrite('/tmp/annotated_image' + str(idx) + '.png', annotated_image)
+                cv2.imshow('MediaPipe Objectron', annotated_image)
+                if cv2.waitKey(0) & 0xFF == 27:
+                    break
+                # cv2.imwrite('/tmp/annotated_image' + str(idx) + '.png', annotated_image)
 
 
 def test_on_camera():
@@ -40,6 +50,7 @@ def test_on_camera():
                                 min_detection_confidence=0.5,
                                 min_tracking_confidence=0.2,
                                 model_name='Cup') as objectron:
+        idx = 0
         while cap.isOpened():
             success, image = cap.read()
             if not success:
@@ -61,7 +72,8 @@ def test_on_camera():
                     print("landmarks3D: ", detected_object.landmarks_3d)
                     print("rotation: ", detected_object.rotation)
                     print("translation: ", detected_object.translation)
-
+                    cv2.imwrite('im' + str(idx) + '.png', image)
+                    idx += 1
                     mp_drawing.draw_landmarks(
                         image, detected_object.landmarks_2d, mp_objectron.BOX_CONNECTIONS)
                     mp_drawing.draw_axis(image, detected_object.rotation,
@@ -70,9 +82,11 @@ def test_on_camera():
             cv2.imshow('MediaPipe Objectron', cv2.flip(image, 1))
             if cv2.waitKey(5) & 0xFF == 27:
                 break
+
     cap.release()
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    test_on_camera()
+    # test_on_camera()
+    test_on_images()

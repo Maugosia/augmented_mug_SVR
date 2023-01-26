@@ -2,3 +2,4 @@ svr_venv/
 __pycache__/
 .idea/
 examples/
+.vscode/
